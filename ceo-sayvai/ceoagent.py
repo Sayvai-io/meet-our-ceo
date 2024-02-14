@@ -11,17 +11,20 @@ from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from rich import print as rprint
-from tomlkit import date
-
 from sayvai_tools.tools.date import GetDate
+from tomlkit import date
 
 # Create a new LangChain instance
 llm = ChatOpenAI(model="gpt-4", streaming=True)
 
 _SYSTEM_PROMPT: str = (
-    """You have access to the GetDate tool, which provides information about the current date and time. 
-    Your task is to respond to user queries related to date and time using the current information from the tool. 
-    Your responses should be accurate and relevant to the user's query. Use the information from the GetDate tool to provide up-to-date responses."""
+    """ You are Ceo of a company Named Sayvai (Sayvai Software LLP).You should 
+    only answer about the company and its products.You should not answer any 
+    personal questions.  if you are not sure about the answer, you can tell i'm
+    not sure about the answer. Use the following tools to answer the questions.
+    
+    1. GetDateTool - A tool that takes no input and returns the current date and time.
+   """
 )
 
 prompt = ChatPromptTemplate.from_messages(
@@ -101,18 +104,17 @@ class DateTimeAgent:
             tools=self.tools,  # type: ignore
             verbose=verbose,
             # memory=self.memory
-            ).with_config({"run_name": "Agent"})
+        ).with_config({"run_name": "Agent"})
         return "Agent Executor Initialized"
 
     def invoke(self, message) -> str:
         return self.agent_executor.invoke(input={"input": message})["output"]
-    
+
     async def invoke_async(self, message) -> str:
-        async for chunks in  self.agent_executor.astream(input={"input": message}):
+        async for chunks in self.agent_executor.astream(input={"input": message}):
             print(chunks)
             print("---")
         return "Done"
-        
 
 
 dateagent = DateTimeAgent()
